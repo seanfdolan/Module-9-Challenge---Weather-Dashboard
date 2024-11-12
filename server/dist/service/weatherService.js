@@ -4,16 +4,14 @@ import dayjs from 'dayjs';
 // TODO: Define a class for the Weather object
 class weatherObject {
     // TODO: Define a constructor that takes city, country, latitude, and longitude as parameters
-    constructor(city, country, latitude, longitude, temperature, description, icon, forecast, date) {
+    constructor(city, temperature, description, icon, date, humidity, windSpeed) {
         this.city = city;
-        this.country = country;
-        this.latitude = latitude;
-        this.longitude = longitude;
         this.temperature = temperature;
         this.description = description;
         this.icon = icon;
-        this.forecast = forecast;
         this.date = date;
+        this.humidity = humidity;
+        this.windSpeed = windSpeed;
     }
 }
 ;
@@ -24,8 +22,8 @@ class WeatherService {
     }
     constructor() {
         this.cityName = "";
-        this.baseURL = 'api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&appid={API key}';
-        this.APIKey = process.env.OPENWEATHERMAP_API_KEY || '11035ff7fdba26c94c071a83d308c99e';
+        this.baseURL = process.env.API_BASE_URL || 'https://api.openweathermap.org';
+        this.APIKey = process.env.API_KEY || '11035ff7fdba26c94c071a83d308c99e';
     }
     // TODO: Create fetchLocationData method
     fetchLocationData(query) {
@@ -56,7 +54,7 @@ class WeatherService {
     }
     //   // TODO: Create buildWeatherQuery method
     buildWeatherQuery(coordinates) {
-        return `${this.baseURL}/weather?lat=${coordinates.lat}&lon=${coordinates.lon}&appid=${this.APIKey}&units=metric`;
+        return `${this.baseURL}/data/2.5/forecast?lat=${coordinates.lat}&lon=${coordinates.lon}&units=metric&appid=${this.APIKey}`;
     }
     //   // TODO: Create fetchAndDestructureLocationData method
     async fetchAndDestructureLocationData() {
@@ -75,23 +73,20 @@ class WeatherService {
         if (!weatherData) {
             throw new Error('Weather data is undefined');
         }
-        const currentWeather = weatherData[0];
-        const forecastData = weatherData.daily.slice(1, 6);
-        const forecastArray = this.buildForecastArray(forecastData);
-        return new weatherObject(currentWeather.cityName, currentWeather.country, currentWeather.latitude, currentWeather.longitude, currentWeather.temperature, currentWeather.description, currentWeather.icon, forecastArray, currentWeather.date);
+        const currentWeather = weatherData.list[0];
+        // const forecastArray = this.buildForecastArray(forecastData);
+        return new weatherObject(this.cityName, currentWeather.main.temp, currentWeather.weather[0].description, currentWeather.weather[0].icon, currentWeather.dt, currentWeather.main.humidity, currentWeather.wind.speed);
     }
     // // TODO: Build parseCurrentWeather method
     parseCurrentWeather(response) {
         return {
             city: response.name,
-            country: response.sys.country,
-            latitude: response.coord.lat,
-            longitude: response.coord.lon,
             temperature: response.main.temp,
             description: response.weather[0].description,
             icon: response.weather[0].icon,
-            forecast: [], // Add an empty array or appropriate forecast data
             date: dayjs(), // Add the current date or appropriate date
+            humidity: response.main.humidity,
+            windSpeed: response.wind.speed,
         };
     }
     // TODO: Complete buildForecastArray method
@@ -107,6 +102,7 @@ class WeatherService {
     // // TODO: Complete getWeatherForCity method
     getWeatherForCity(city) {
         this.cityName = city;
+        console.log(city);
         return this.fetchAndDestructureLocationData().then((coordinates) => this.fetchWeatherData(coordinates));
     }
 }

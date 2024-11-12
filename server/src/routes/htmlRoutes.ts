@@ -19,3 +19,6 @@ router.get('/weather', (_req: Request, res: Response) => {
 
 
 export default router;
+
+
+

@@ -4,6 +4,7 @@ class City {
   id: string;
   latitude: number;
   longitude: number;
+
   constructor(name: string, id: string, latitude: number, longitude: number) {
     this.name = name;
     this.id = id;
@@ -17,23 +18,45 @@ import fs from 'fs/promises'; // Import fs module
 // TODO: Complete the HistoryService class
 class HistoryService {
   // TODO: Define a read method that reads from the searchHistory.json file
-  private async read () {
-    const data = await fs.readFile('searchHistory.json', 'utf8');
-    return data;
+  // private async read () {
+  //   const data = await fs.readFile('searchHistory.json', 'utf8');
+  //   return data;
+  // }
+  private async read() {
+    return await fs.readFile('searchHistory.json', {
+      flag: 'a+',
+      encoding: 'utf8',
+    });
   }
   // private async read() {}
 
   // TODO: Define a write method that writes the updated cities array to the searchHistory.json file
+  // private async write(cities: City[]) {
+  //   const jsonData = JSON.stringify(cities);
+  //   await fs.writeFile('searchHistory.json', jsonData, 'utf8');
+  // }
   private async write(cities: City[]) {
-    const jsonData = JSON.stringify(cities);
-    await fs.writeFile('searchHistory.json', jsonData, 'utf8');
+    return await fs.writeFile('searchHistory.json', JSON.stringify(cities, null, '\t'));
   }
   // private async write(cities: City[]) {}
 
   // TODO: Define a getCities method that reads the cities from the searchHistory.json file and returns them as an array of City objects
+  // async getCities() {
+  //   const data = await this.read();
+  //   return JSON.parse(data) as City[];
+  // }
   async getCities() {
-    const data = await this.read();
-    return JSON.parse(data) as City[];
+    return await this.read().then((cities) => {
+      let parsedCities: City[];
+
+      try {
+        parsedCities = [].concat(JSON.parse(cities));
+      } catch (err) {
+        parsedCities = [];
+      }
+
+      return parsedCities;
+    });
   }
   // async getCities() {}
 
